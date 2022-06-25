@@ -58,6 +58,7 @@ fn save_note(note: String, connection: &Connection) -> rusqlite::Result<()>{
 
 
 fn main() {
+    let mut showingTodos = false;
 
     let connection = match create_db() {
         Ok(connection) => connection,
@@ -70,6 +71,7 @@ fn main() {
 
     wind.end();
     wind.show();
+
     wind.handle(move |win, event| {
         match event {
             Event::KeyUp => {
@@ -78,6 +80,19 @@ fn main() {
                     input.set_value("");
                 }
                 if event_key() == Key::Tab {
+                    if showingTodos == true {
+
+                        win.clear();
+                        showingTodos = false;
+
+                        input = Input::new(0, 0, 400 , 100, "");
+                        win.add(&input);
+                        win.redraw();
+
+                        input.take_focus();
+
+                        return true;
+                    }
 
                     win.clear();
 
@@ -99,8 +114,9 @@ fn main() {
                     }
                     win.add(&pack);
                     win.redraw();
+                    showingTodos = true;
                 }
-                true
+                return true
 
 
             },
