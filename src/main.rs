@@ -1,4 +1,4 @@
-use fltk::{app::{self, event_key}, input::Input, enums::*, prelude::*, window::Window, text::{TextAttr, TextDisplay}, button::RoundButton};
+use fltk::{app::{self, event_key}, input::Input, enums::*, prelude::*, window::{Window, DoubleWindow}, text::{TextAttr, TextDisplay}, button::RoundButton};
 use fltk::{enums::*, prelude::*, *};
 use std::io::prelude::*;
 use std::fs::File;
@@ -58,7 +58,8 @@ fn save_note(note: String, connection: &Connection) -> rusqlite::Result<()>{
 
 
 fn main() {
-    let mut showingTodos = false;
+    let mut showing_todos = false;
+    let mut focused_todo: i32 = 0;
 
     let connection = match create_db() {
         Ok(connection) => connection,
@@ -68,6 +69,8 @@ fn main() {
     let app = app::App::default();
     let mut wind = Window::new(100, 100, 400, 100, "Hello from rust");
     let mut input = Input::new(0, 0, 400 , 100, "");
+
+    let notes = get_notes(&connection).unwrap();
 
     wind.end();
     wind.show();
@@ -80,42 +83,33 @@ fn main() {
                     input.set_value("");
                 }
                 if event_key() == Key::Tab {
-                    if showingTodos == true {
+                    if showing_todos == true {
 
                         win.clear();
-                        showingTodos = false;
+                        showing_todos = false;
+                    input = draw_note_input(win);
 
-                        input = Input::new(0, 0, 400 , 100, "");
-                        win.add(&input);
-                        win.redraw();
-
-                        input.take_focus();
-
-                        return true;
+                                                return true;
                     }
 
-                    win.clear();
-
-    let mut scroll = group::Scroll::default().with_size(600, 350);
-    let mut pack = group::Pack::default()
-        .with_size(580, 350)
-        .center_of(&scroll);
-    pack.end();
-    scroll.end();
-
-
-                    let notes = get_notes(&connection).unwrap();
-                    let mut pack = pack.clone();
-
-                    for memo in notes {
-                    let joo = memo.memo.clone().to_string();
-                    let item = RoundButton::new(0, 0, 50, 20, "").with_label(&joo);
-                    pack.add(&item);
-                    }
-                    win.add(&pack);
-                    win.redraw();
-                    showingTodos = true;
+                    draw_notes(win, &notes, focused_todo);
+                    showing_todos = true;
                 }
+
+                if event_key() == Key::from_char('j') {
+                    if showing_todos && focused_todo + 1 <= (notes.len() - 1).try_into().unwrap() {
+                        focused_todo = focused_todo + 1;
+                        draw_notes(win, &notes, focused_todo);
+                    }
+                }
+
+                if event_key() == Key::from_char('k') {
+                    if showing_todos && focused_todo - 1 >= 0 {
+                        focused_todo = focused_todo - 1;
+                        draw_notes(win, &notes, focused_todo);
+                    }
+                }
+
                 return true
 
 
@@ -124,6 +118,43 @@ fn main() {
             _ => false,
         }
     });
+
+    fn draw_note_input(win: & mut DoubleWindow) -> fltk::input::Input {
+        let mut input = Input::new(0, 0, 400 , 100, "");
+        win.add(&input);
+        win.redraw();
+        input.take_focus();
+
+        return input;
+    }
+
+    fn draw_notes(win: & mut DoubleWindow, notes: &Vec<MemoNote>, focused_note: i32) {
+                    win.clear();
+                    let mut scroll = group::Scroll::default().with_size(600, 350);
+                    let mut pack = group::Pack::default()
+                        .with_size(580, 350)
+                        .center_of(&scroll);
+                    pack.end();
+                    scroll.end();
+
+
+                    let mut pack = pack.clone();
+
+                    for (i, note) in notes.iter().enumerate() {
+                    let label = note.memo.clone().to_string();
+                    let mut item = RoundButton::new(0, 0, 50, 20, "").with_label(&label);
+
+                    if i == focused_note.try_into().unwrap() {
+                        println!("this is focused {focused}", focused = focused_note);
+                        item.take_focus();
+                    }
+
+                    pack.add(&item);
+                    }
+
+                    win.add(&pack);
+                    win.redraw();
+    }
 
     app.run().unwrap();
 }
