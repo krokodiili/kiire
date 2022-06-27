@@ -79,8 +79,8 @@ fn main() {
     };
 
     let app = app::App::default();
-    let mut wind = Window::new(100, 100, 400, 100, "Hello from rust");
-    let mut input = Input::new(0, 0, 400 , 100, "");
+    let mut wind = Window::new(100, 100, 400, 40, "Kiire");
+    let mut input = render_input();
     let mut d_was_pressed = false;
 
     let mut notes = get_notes(&connection).unwrap();
@@ -98,15 +98,16 @@ fn main() {
                     input.set_value("");
                 }
                 if event_key() == Key::Tab {
-                    if showing_todos == true {
 
+                    if showing_todos == true {
+                        win.resize(100, 100, 400, 40);
                         win.clear();
                         showing_todos = false;
-                    input = draw_note_input(win);
-
-                                                return true;
+                        input = draw_note_input(win);
+                        return true;
                     }
 
+                    win.resize(100, 100, 400, 800);
                     draw_notes(win, &notes, focused_todo);
                     showing_todos = true;
                 }
@@ -136,7 +137,6 @@ fn main() {
                             notes.remove(focused_todo as usize);
                             focused_todo = 0;
                             draw_notes(win, &notes, focused_todo);
-                            println!("delete");
                         }
                     }
                 }
@@ -153,7 +153,7 @@ fn main() {
     });
 
     fn draw_note_input(win: & mut DoubleWindow) -> fltk::input::Input {
-        let mut input = Input::new(0, 0, 400 , 100, "");
+        let mut input = render_input();
         win.add(&input);
         win.redraw();
         input.take_focus();
@@ -189,4 +189,8 @@ fn main() {
     }
 
     app.run().unwrap();
+}
+
+fn render_input() -> fltk::input::Input {
+    return Input::new(0, 0, 400 , 40, "");
 }
