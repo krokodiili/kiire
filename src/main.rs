@@ -57,6 +57,18 @@ fn save_note(note: String, connection: &Connection) -> rusqlite::Result<()>{
 }
 
 
+fn delete_note(note_id: i64, connection: &Connection) -> rusqlite::Result<()>{
+
+    let result = connection.execute(
+        "delete from memos where id = (?1)",
+        params![note_id],
+    )?;
+
+    return Ok(());
+}
+
+
+
 fn main() {
     let mut showing_todos = false;
     let mut focused_todo: i32 = 0;
@@ -69,8 +81,9 @@ fn main() {
     let app = app::App::default();
     let mut wind = Window::new(100, 100, 400, 100, "Hello from rust");
     let mut input = Input::new(0, 0, 400 , 100, "");
+    let mut d_was_pressed = false;
 
-    let notes = get_notes(&connection).unwrap();
+    let mut notes = get_notes(&connection).unwrap();
 
     wind.end();
     wind.show();
@@ -80,6 +93,8 @@ fn main() {
             Event::KeyUp => {
                 if event_key() == Key::Enter {
                     save_note(input.value(), &connection).unwrap();
+                    notes = get_notes(&connection).unwrap();
+
                     input.set_value("");
                 }
                 if event_key() == Key::Tab {
@@ -109,6 +124,24 @@ fn main() {
                         draw_notes(win, &notes, focused_todo);
                     }
                 }
+
+                if event_key() == Key::from_char('d') {
+                    //TODO: automatically reset d_was_pressed if not pressed again in second or two
+                    if showing_todos {
+                        if !d_was_pressed {
+                            d_was_pressed = true;
+                        } else {
+                            d_was_pressed = false;
+                            delete_note(notes[focused_todo as usize].id, &connection);
+                            notes.remove(focused_todo as usize);
+                            focused_todo = 0;
+                            draw_notes(win, &notes, focused_todo);
+                            println!("delete");
+                        }
+                    }
+                }
+
+
 
                 return true
 
@@ -145,7 +178,6 @@ fn main() {
                     let mut item = RoundButton::new(0, 0, 50, 20, "").with_label(&label);
 
                     if i == focused_note.try_into().unwrap() {
-                        println!("this is focused {focused}", focused = focused_note);
                         item.take_focus();
                     }
 
