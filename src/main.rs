@@ -16,7 +16,7 @@ fn main() {
     };
 
     let app = app::App::default().with_scheme(app::Scheme::Plastic);
-    let mut wind = Window::new(0, 0, WINDOW_WIDTH, 40, "Kiire").center_screen();
+    let mut wind = Window::new(0, 0, WINDOW_WIDTH, 50, "Kiire").center_screen();
 
     let mut input = draw_note_input(& mut wind);
 
@@ -39,7 +39,7 @@ fn main() {
                 if event_key() == Key::Tab {
 
                     if showing_todos == true {
-                        win.resize(100, 100, WINDOW_WIDTH, 40);
+                        win.resize(100, 100, WINDOW_WIDTH, 50);
                         win.clear();
                         showing_todos = false;
                         input = draw_note_input(win);
@@ -101,7 +101,7 @@ fn main() {
     }
 
     fn render_input() -> fltk::input::Input {
-        return Input::new(0, 0, WINDOW_WIDTH, 40, "");
+        return Input::new(0, 0, WINDOW_WIDTH, 50, "");
     }
 
     fn draw_notes(win: & mut DoubleWindow, notes: &Vec<models::MemoNote>, focused_note: i32) {
