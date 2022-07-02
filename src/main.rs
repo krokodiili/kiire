@@ -1,8 +1,10 @@
-use fltk::{app::{self, event_key}, input::Input, enums::*, prelude::*, window::{Window, DoubleWindow}, button::RoundButton};
+use fltk::{app::{self, event_key}, button::Button ,input::Input, enums::*, prelude::*, window::{Window, DoubleWindow}, button::RoundButton};
 use fltk::*;
 
 mod ops;
 mod models;
+
+static WINDOW_WIDTH: i32 = 400;
 
 fn main() {
     let mut showing_todos = false;
@@ -13,9 +15,11 @@ fn main() {
         Err(_) => {panic!("failed to connect")},
     };
 
-    let app = app::App::default();
-    let mut wind = Window::new(100, 100, 400, 40, "Kiire");
-    let mut input = render_input();
+    let app = app::App::default().with_scheme(app::Scheme::Plastic);
+    let mut wind = Window::new(0, 0, WINDOW_WIDTH, 40, "Kiire").center_screen();
+
+    let mut input = draw_note_input(& mut wind);
+
     let mut d_was_pressed = false;
 
     let mut notes = ops::get_notes(&connection).unwrap();
@@ -35,14 +39,14 @@ fn main() {
                 if event_key() == Key::Tab {
 
                     if showing_todos == true {
-                        win.resize(100, 100, 400, 40);
+                        win.resize(100, 100, WINDOW_WIDTH, 40);
                         win.clear();
                         showing_todos = false;
                         input = draw_note_input(win);
                         return true;
                     }
 
-                    win.resize(100, 100, 400, 800);
+                    win.resize(100, 100, WINDOW_WIDTH, 800);
                     draw_notes(win, &notes, focused_todo);
                     showing_todos = true;
                 }
@@ -96,12 +100,18 @@ fn main() {
         return input;
     }
 
+    fn render_input() -> fltk::input::Input {
+        return Input::new(0, 0, WINDOW_WIDTH, 40, "");
+    }
+
     fn draw_notes(win: & mut DoubleWindow, notes: &Vec<models::MemoNote>, focused_note: i32) {
                     win.clear();
-                    let mut scroll = group::Scroll::default().with_size(600, 350);
+                    let mut scroll = group::Scroll::default().size_of_parent();
                     let mut pack = group::Pack::default()
-                        .with_size(580, 350)
-                        .center_of(&scroll);
+                        .with_size(WINDOW_WIDTH - 20, 350)
+                        .with_pos(10, 10);
+
+                    pack.set_spacing(10);
                     pack.end();
                     scroll.end();
 
@@ -110,7 +120,12 @@ fn main() {
 
                     for (i, note) in notes.iter().enumerate() {
                     let label = note.memo.clone().to_string();
-                    let mut item = RoundButton::new(0, 0, 50, 20, "").with_label(&label);
+
+                    let mut item = Button::new(0, 0, 50, 50, "").with_label(&label);
+
+                    item.set_label_font(Font::HelveticaBold);
+                    item.set_frame(FrameType::PlasticUpBox);
+                    item.set_color(Color::from_rgb(255, 0, 0));
 
                     if i == focused_note.try_into().unwrap() {
                         item.take_focus();
@@ -126,6 +141,3 @@ fn main() {
     app.run().unwrap();
 }
 
-fn render_input() -> fltk::input::Input {
-    return Input::new(0, 0, 400 , 40, "");
-}
