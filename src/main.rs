@@ -1,10 +1,13 @@
 use fltk::{app::{self, event_key}, enums::*, prelude::*};
+use std::cmp;
 
 mod ops;
 mod models;
 mod view;
 
 static WINDOW_WIDTH: i32 = 400;
+static NOTE_HEIGHT: i32 = 50;
+static BIG_NOTE_HEIGHT: i32 = NOTE_HEIGHT * 3;
 
 fn main() {
     let mut showing_todos = false;
@@ -45,7 +48,10 @@ fn main() {
                         return true;
                     }
 
-                    win.resize(100, 100, WINDOW_WIDTH, 800);
+                    let dynamic_height = notes.len() as i32 * NOTE_HEIGHT + BIG_NOTE_HEIGHT;
+                    let window_size = cmp::min(dynamic_height, 500);
+
+                    win.resize(100, 100, WINDOW_WIDTH, window_size);
                     view::draw_notes(win, &notes, focused_todo);
                     showing_todos = true;
                 }
@@ -73,7 +79,7 @@ fn main() {
                             d_was_pressed = false;
                             ops::delete_note(notes[focused_todo as usize].id, &connection);
                             notes.remove(focused_todo as usize);
-                            focused_todo = 0;
+                            focused_todo = minus_one_or_zero(focused_todo);
                             view::draw_notes(win, &notes, focused_todo);
                         }
                     }
@@ -85,11 +91,19 @@ fn main() {
 
 
             },
-            //TODO: hjkl movement, todo valinta
             _ => false,
         }
     });
 
+
     app.run().unwrap();
 }
+
+    fn minus_one_or_zero(current: i32) -> i32 {
+        if current > 0 {
+            return current - 1;
+        } else {
+            return 0;
+        }
+    }
 
