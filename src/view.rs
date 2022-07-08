@@ -44,16 +44,29 @@ pub fn draw_notes(win: & mut DoubleWindow, notes: &Vec<models::MemoNote>, focuse
                 let mut pack = pack.clone();
 
                 for (i, note) in notes.iter().enumerate() {
-                let label = note.memo.clone().to_string();
+                let mut label = note.memo.clone().to_string();
 
-                let mut item = Button::new(0, 0, 50, 50, "").with_label(&label);
+                let is_focused_note =  i == focused_note.try_into().unwrap();
+                let is_oversized_label = label.len() > 50;
+
+                if is_oversized_label && !is_focused_note {
+                    label = label[..50].to_string();
+                    label.push_str("...");
+                }
+
+
+                let mut item = Button::new(0, 0, 50, 50, "").with_label(&label).with_align(Align::Wrap);
+
+                if(is_oversized_label && is_focused_note) {
+                    item.set_size(50, 150);
+                }
 
                 item.set_label_font(Font::HelveticaBold);
                 item.set_frame(FrameType::PlasticUpBox);
                 item.set_color(Color::from_rgb(255, 0, 0));
                 item.set_label_type(LabelType::Embossed);
 
-                if i == focused_note.try_into().unwrap() {
+                if is_focused_note {
                     item.take_focus();
                 }
 
