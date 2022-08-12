@@ -1,4 +1,4 @@
-use fltk::{app::{self, event_key}, frame::Frame, button::Button ,input::Input, enums::*, prelude::*, window::{Window, DoubleWindow}, button::RoundButton};
+use fltk::{prelude::*, button::Button ,input::Input, enums::*, window::{Window, DoubleWindow}};
 use fltk::*;
 use crate::models;
 
@@ -13,8 +13,7 @@ pub fn draw_note_input(win: & mut DoubleWindow) -> fltk::input::Input {
     let mut input = render_input();
     win.add(&input);
     win.redraw();
-    input.take_focus();
-
+    input.take_focus().unwrap();
     return input;
 }
 
@@ -24,17 +23,17 @@ pub fn render_input() -> fltk::input::Input {
 
 pub fn draw_notes(win: & mut DoubleWindow, notes: &Vec<models::MemoNote>, focused_note: i32) {
                 win.clear();
-                let mut image_frame = Frame::default().with_size(WINDOW_WIDTH,800);
-                let flamingo = image::JpegImage::load("flamingo.jpg").unwrap();
-                image_frame.set_image(Some(flamingo));
 
-                win.add(&image_frame);
+                let height_by_note_amount = notes.len() as i32 * 50 + 100;
 
+                let mut scroll = group::Scroll::default()
+                    .with_size(WINDOW_WIDTH, height_by_note_amount);
 
-                let scroll = group::Scroll::default().size_of_parent();
+                    scroll.set_scrollbar_size(10);
+
                 let mut pack = group::Pack::default()
-                    .with_size(WINDOW_WIDTH - 20, 350)
-                    .with_pos(10, 10);
+                    .with_size(WINDOW_WIDTH - 30, height_by_note_amount)
+                    .with_pos(10,10);
 
                 pack.set_spacing(10);
                 pack.end();
@@ -57,7 +56,7 @@ pub fn draw_notes(win: & mut DoubleWindow, notes: &Vec<models::MemoNote>, focuse
 
                 let mut item = Button::new(0, 0, 50, 50, "").with_label(&label).with_align(Align::Wrap);
 
-                if(is_oversized_label && is_focused_note) {
+                if is_oversized_label && is_focused_note {
                     item.set_size(50, 150);
                 }
 
@@ -68,13 +67,26 @@ pub fn draw_notes(win: & mut DoubleWindow, notes: &Vec<models::MemoNote>, focuse
 
                 if is_focused_note {
                     item.take_focus();
+
+                    let offset = if  i > 3 {
+                        100
+                    } else {
+                        0
+                    };
+
+                    let scroll_amount = i as i32 * 50 - offset;
+                    scroll.scroll_to(0, scroll_amount);
                 }
 
                 pack.add(&item);
+
                 }
 
-                win.add(&pack);
+
+                scroll.add(&pack);
+                win.add(&scroll);
                 win.redraw();
+
 }
 
 
