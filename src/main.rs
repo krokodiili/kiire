@@ -1,8 +1,12 @@
-use fltk::{app::{self, event_key}, enums::*, prelude::*};
+use fltk::{
+    app::{self, event_key},
+    enums::*,
+    prelude::*,
+};
 use std::cmp;
 
-mod ops;
 mod models;
+mod ops;
 mod view;
 
 static WINDOW_WIDTH: i32 = 400;
@@ -15,12 +19,14 @@ fn main() {
 
     let connection = match ops::create_db() {
         Ok(connection) => connection,
-        Err(_) => {panic!("failed to connect")},
+        Err(_) => {
+            panic!("failed to connect")
+        }
     };
 
     let app = app::App::default().with_scheme(app::Scheme::Plastic);
     let mut wind = view::draw_window();
-    let mut input = view::draw_note_input(& mut wind);
+    let mut input = view::draw_note_input(&mut wind);
 
     let mut d_was_pressed = false;
 
@@ -39,7 +45,6 @@ fn main() {
                     input.set_value("");
                 }
                 if event_key() == Key::Tab {
-
                     if showing_todos == true {
                         win.resize(100, 100, WINDOW_WIDTH, 50);
                         win.clear();
@@ -77,7 +82,7 @@ fn main() {
                             d_was_pressed = true;
                         } else {
                             d_was_pressed = false;
-                            ops::delete_note(notes[focused_todo as usize].id, &connection);
+                            ops::delete_note(notes[focused_todo as usize].id, &connection).unwrap();
                             notes.remove(focused_todo as usize);
                             focused_todo = minus_one_or_zero(focused_todo);
                             view::draw_notes(win, &notes, focused_todo);
@@ -85,25 +90,19 @@ fn main() {
                     }
                 }
 
-
-
-                return true
-
-
-            },
+                return true;
+            }
             _ => false,
         }
     });
 
-
     app.run().unwrap();
 }
 
-    fn minus_one_or_zero(current: i32) -> i32 {
-        if current > 0 {
-            return current - 1;
-        } else {
-            return 0;
-        }
+fn minus_one_or_zero(current: i32) -> i32 {
+    if current > 0 {
+        return current - 1;
+    } else {
+        return 0;
     }
-
+}
